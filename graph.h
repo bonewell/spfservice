@@ -2,6 +2,7 @@
 #define GRAPH_H_
 
 #include <limits>
+#include <list>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -14,6 +15,7 @@ struct Vertex {
   Id id;
   Distance distance{std::numeric_limits<Distance>::max()};
   Neighbors neighbors;
+  Id previous{-1};
 
   /**
    * Updates distance to this vertex through a vertex.
@@ -72,6 +74,12 @@ struct Graph {
    * @return distance.
    */
   Distance calculate(Id from, Id to);
+
+  /**
+   * Gets path to the target vertex.
+   * @return list of the vertex by order.
+   */
+  std::list<Id> path(Id to) const;
 };
 
 #endif /* GRAPH_H_ */

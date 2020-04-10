@@ -4,6 +4,7 @@
 #include "graph.h"
 
 using ::testing::Eq;
+using ::testing::ContainerEq;
 
 TEST(SPF, ShorterPathFound) {
   Vertex a{0, 6};
@@ -107,5 +108,17 @@ TEST(SPF, Calculate) {
   g.unvisitedIds = {0, 1, 2, 3, 4, 5};
 
   EXPECT_THAT(g.calculate(0, 4), Eq(20));
+}
 
+TEST(SPF, GetPath) {
+  Graph g;
+  g.vertexes = {{0}, {1}, {2}, {3}, {4}, {5}};
+  g[0].previous = -1;  // this is source vertex
+  g[1].previous = 0;
+  g[2].previous = 0;
+  g[3].previous = 2;
+  g[4].previous = 5;
+  g[5].previous = 2;
+
+  EXPECT_THAT(g.path(4), ContainerEq(std::list<Id>{0, 2, 5, 4}));
 }

@@ -6,6 +6,7 @@ void Vertex::update(Vertex const& a) {
   auto d = a.distance + a.neighbors.at(id);
   if (distance > d) {
     distance = d;
+    previous = a.id;
   }
 }
 
@@ -52,4 +53,14 @@ Distance Graph::calculate(Id from, Id to) {
     mark(current);
   } while (!isFinished());
   return vertexes[to].distance;
+}
+
+std::list<Id> Graph::path(Id to) const {
+  std::list<Id> p{to};
+  auto prev = vertexes[to].previous;
+  while (prev != -1) {
+    p.push_front(prev);
+    prev = vertexes[prev].previous;
+  }
+  return p;
 }
