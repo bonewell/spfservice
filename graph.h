@@ -1,7 +1,7 @@
 #ifndef GRAPH_H_
 #define GRAPH_H_
 
-#include <numeric>
+#include <limits>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>

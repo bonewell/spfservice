@@ -1,5 +1,7 @@
 #include "graph.h"
 
+#include <algorithm>
+
 void Vertex::update(Vertex const& a) {
   auto d = a.distance + a.neighbors.at(id);
   if (distance > d) {
