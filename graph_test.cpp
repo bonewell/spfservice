@@ -6,119 +6,171 @@
 using ::testing::Eq;
 using ::testing::ContainerEq;
 
+class TestGraph : public Graph {
+public:
+  using Graph::operator[];
+  using Graph::source;
+  using Graph::update;
+  using Graph::mark;
+  using Graph::isFinished;
+  using Graph::next;
+  using Graph::calculate;
+  using Graph::path;
+};
+
 TEST(SPF, ShorterPathFound) {
-  Vertex a{0, 6};
-  Vertex b{1, 10};
-  a.neighbors[b.id] = 2;
+  Vertex a{0, {{1, 2}}, {6}};
+  Vertex b{1, {}, {10}};
 
   b.update(a);
 
-  EXPECT_THAT(b.distance, Eq(8));
+  EXPECT_THAT(b.info.distance, Eq(8));
 }
 
 TEST(SPF, NoShorterPath) {
-  Vertex a{0, 6};
-  Vertex b{1, 7};
-  a.neighbors[b.id] = 2;
+  Vertex a{0, {{1, 2}}, {6}};
+  Vertex b{1, {}, {7}};
 
   b.update(a);
 
-  EXPECT_THAT(b.distance, Eq(7));
+  EXPECT_THAT(b.info.distance, Eq(7));
+}
+
+TEST(SPF, VertexIsVisited) {
+  Vertex a{0, {{1, 2}}, {6}};
+  Vertex b{1, {}, {10, true}};
+
+  b.update(a);
+
+  EXPECT_THAT(b.info.distance, Eq(10));
 }
 
 TEST(SPF, UpdateNeighbors) {
-  Graph g;
-  g.vertexes = {{0, 6}, {1}, {2}};
-  g.unvisitedIds = {1, 2};
-  auto& a = g[0];
-  auto& b = g[1];
-  auto& c = g[2];
-  a.neighbors[b.id] = 3;
-  a.neighbors[c.id] = 5;
+  TestGraph g;
+  g.insert(0, {{1, 3}, {2, 5}});
+  g.insert(1);
+  g.insert(2);
+  g.source(0);
+  g[0].info.distance = 6;
 
-  g.update(a);
+  g.update(g[0]);
 
-  EXPECT_THAT(b.distance, Eq(9));
-  EXPECT_THAT(c.distance, Eq(11));
+  EXPECT_THAT(g[1].info.distance, Eq(9));
+  EXPECT_THAT(g[2].info.distance, Eq(11));
 }
 
 TEST(SPF, SkipVisitedNeighbor) {
-  Graph g;
-  g.vertexes = {{0, 2}, {1, 5}};
-  auto& a = g[0];
-  auto& b = g[1];
-  a.neighbors[b.id] = 1;
+  TestGraph g;
+  g.insert(0, {{1, 1}});
+  g.insert(1);
+  g.source(0);
+  g[1].info.distance = 5;
+  g[1].info.visited = true;
 
-  g.update(a);
+  g.update(g[0]);
 
-  EXPECT_THAT(b.distance, Eq(5));
+  EXPECT_THAT(g[1].info.distance, Eq(5));
 }
 
 TEST(SPF, MarkAsVisited) {
-  Graph g;
-  g.vertexes = {{0, 0}, {1}};
-  g.unvisitedIds = {0, 1};
-  auto& a = g[0];
+  TestGraph g;
+  g.insert(0);
+  g.insert(1);
 
-  g.mark(a);
+  g.mark(g[0]);
 
-  EXPECT_THAT(g.unvisitedIds.find(a.id), Eq(g.unvisitedIds.end()));
+  EXPECT_THAT(g[0].info.visited, Eq(true));
+//  EXPECT_THAT(g.unvisitedIds.find(a.id), Eq(g.unvisitedIds.end()));
 }
 
-TEST(SPF, TheEnd) {
-  Graph g;
-  g.vertexes = {{0, 0}, {1}};
+TEST(SPF, TheEndNoUnvisited) {
+  TestGraph g;
+  g.insert(0);
+  g.insert(1);
 
   EXPECT_THAT(g.isFinished(), Eq(true));
 }
 
 TEST(SPF, TheEndWithNoEdge) {
-  Graph g;
-  g.vertexes = {{0, 0}, {1}};
-  g.unvisitedIds = {1};
+  TestGraph g;
+  g.insert(0);
+  g.insert(1);
+  g.source(0);
+  g.mark(g[0]);
 
   EXPECT_THAT(g.isFinished(), Eq(true));
 }
 
 TEST(SPF, NoFinished) {
-  Graph g;
-  g.vertexes = {{0, 0}, {1, 4}};
-  g.unvisitedIds = {1};
+  TestGraph g;
+  g.insert(0);
+  g.insert(1);
+  g.source(0);
+  g.mark(g[0]);
+  g[1].info.distance = 4;
 
   EXPECT_THAT(g.isFinished(), Eq(false));
 }
 
 TEST(SPF, NextUnvisited) {
-  Graph g;
-  g.vertexes = {{0, 0}, {1, 5}, {2, 3}};
-  g.unvisitedIds = {1, 2};
+  TestGraph g;
+  g.insert(0);
+  g.insert(1);
+  g.insert(2);
+  g.source(0);
+  g.mark(g[0]);
+  g[1].info.distance = 5;
+  g[2].info.distance = 3;
 
   EXPECT_THAT(g.next().id, Eq(2));
 }
 
 TEST(SPF, Calculate) {
-  Graph g;
-  g.vertexes = {{0}, {1}, {2}, {3}, {4}, {5}};
-  g[0].neighbors = {{1, 7}, {2, 9}, {5, 14}};
-  g[1].neighbors = {{0, 7}, {2, 10}, {3, 15}};
-  g[2].neighbors = {{0, 9}, {1, 10}, {3, 11}, {5, 2}};
-  g[3].neighbors = {{1, 15}, {2, 11}, {4, 6}};
-  g[4].neighbors = {{3, 6}, {5, 9}};
-  g[5].neighbors = {{0, 14}, {2, 2}, {4, 9}};
-  g.unvisitedIds = {0, 1, 2, 3, 4, 5};
+  TestGraph g;
+  g.insert(0, {{1, 7}, {2, 9}, {5, 14}});
+  g.insert(1, {{0, 7}, {2, 10}, {3, 15}});
+  g.insert(2, {{0, 9}, {1, 10}, {3, 11}, {5, 2}});
+  g.insert(3, {{1, 15}, {2, 11}, {4, 6}});
+  g.insert(4, {{3, 6}, {5, 9}});
+  g.insert(5, {{0, 14}, {2, 2}, {4, 9}});
+  g.source(0);
 
-  EXPECT_THAT(g.calculate(0, 4), Eq(20));
+  EXPECT_THAT(g.calculate(4), Eq(20));
 }
 
 TEST(SPF, GetPath) {
-  Graph g;
-  g.vertexes = {{0}, {1}, {2}, {3}, {4}, {5}};
-  g[0].previous = -1;  // this is source vertex
-  g[1].previous = 0;
-  g[2].previous = 0;
-  g[3].previous = 2;
-  g[4].previous = 5;
-  g[5].previous = 2;
+  TestGraph g;
+  g.insert(0); g[0].info = {0, true};
+  g.insert(1); g[1].info = {0, true, 0};
+  g.insert(2); g[2].info = {0, true, 0};
+  g.insert(3); g[3].info = {0, true, 2};
+  g.insert(4); g[4].info = {0, true, 5};
+  g.insert(5); g[5].info = {0, true, 2};
 
   EXPECT_THAT(g.path(4), ContainerEq(std::list<Id>{0, 2, 5, 4}));
+}
+
+TEST(SPF, CalculateAndGetPath) {
+  Graph g;
+  g.insert(0, {{1, 7}, {2, 9}, {5, 14}});
+  g.insert(1, {{0, 7}, {2, 10}, {3, 15}});
+  g.insert(2, {{0, 9}, {1, 10}, {3, 11}, {5, 2}});
+  g.insert(3, {{1, 15}, {2, 11}, {4, 6}});
+  g.insert(4, {{3, 6}, {5, 9}});
+  g.insert(5, {{0, 14}, {2, 2}, {4, 9}});
+
+  EXPECT_THAT(g.path(0, 4), ContainerEq(std::list<Id>{0, 2, 5, 4}));
+}
+
+TEST(SPF, GetAlreadyCalculatedPath) {
+  Graph g;
+  g.insert(0, {{1, 7}, {2, 9}, {5, 14}});
+  g.insert(1, {{0, 7}, {2, 10}, {3, 15}});
+  g.insert(2, {{0, 9}, {1, 10}, {3, 11}, {5, 2}});
+  g.insert(3, {{1, 15}, {2, 11}, {4, 6}});
+  g.insert(4, {{3, 6}, {5, 9}});
+  g.insert(5, {{0, 14}, {2, 2}, {4, 9}});
+  g.path(0, 5);
+
+  EXPECT_THAT(g.path(0, 4), ContainerEq(std::list<Id>{0, 2, 5, 4}));
 }

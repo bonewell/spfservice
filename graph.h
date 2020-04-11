@@ -3,19 +3,25 @@
 
 #include <limits>
 #include <list>
+#include <optional>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-using Id = long long int;
+using Id = long long unsigned int;
 using Distance = double;
 using Neighbors = std::unordered_map<Id, Distance>;
 
+struct SpfInfo {
+  Distance distance{std::numeric_limits<Distance>::infinity()};
+  bool visited{false};
+  std::optional<Id> previous;
+};
+
 struct Vertex {
   Id id;
-  Distance distance{std::numeric_limits<Distance>::max()};
   Neighbors neighbors;
-  Id previous{-1};
+  SpfInfo info;
 
   /**
    * Updates distance to this vertex through a vertex.
@@ -28,14 +34,40 @@ struct Vertex {
    * @return true if the distance is infinite.
    */
   bool infinite() const;
+
+  /**
+   * Checks whether the vertex is source of the path.
+   * @return true if the vertex is source;
+   */
+  bool isSource() const;
 };
 
-struct Graph {
-  std::vector<Vertex> vertexes;
-  std::unordered_set<Id> unvisitedIds;
+class Graph {
+public:
 
+  /**
+   * Inserts vertex into graph.
+   * @param id - ID of the vertex.
+   * @param neighbors - distances to neighbors.
+   */
+  void insert(Id id, Neighbors neighbors = {});
+
+  /**
+   * Gets path from a source to a target vertex.
+   * @param from - the source vertex.
+   * @param to - the target vertex.
+   * @return list of the vertex by order.
+   */
+  std::list<Id> path(Id from, Id to);
+
+protected:
   Vertex& operator[](Id id) { return vertexes[id]; }
-  Vertex const& operator[](Id id) const { return vertexes[id]; }
+
+  /**
+   * Sets source vertex.
+   * @param id - source vertex.
+   */
+  void source(Id id);
 
   /**
    * Updates distance to neighbors of the current vertex through it.
@@ -44,16 +76,10 @@ struct Graph {
   void update(Vertex const& a);
 
   /**
-   * Checks whether the vertex is visited or not.
-   * @return true is the vertex is unvisited.
-   */
-  bool isUnvisited(Id id) const;
-
-  /**
    * Marks vertex like visited.
    * @param a - the vertex.
    */
-  void mark(Vertex const& a);
+  void mark(Vertex& a);
 
   /**
    * Checks whether calculation finished.
@@ -65,21 +91,24 @@ struct Graph {
    * Gets the next unvisited vertex with the minimum distance.
    * @return the vertex.
    */
-  Vertex const& next() const;
+  Vertex& next();
 
   /**
    * Calculate distance from source vertex to target vertex.
-   * @param from - source vertex.
    * @param to - target vertex.
    * @return distance.
    */
-  Distance calculate(Id from, Id to);
+  Distance calculate(Id to);
 
   /**
    * Gets path to the target vertex.
    * @return list of the vertex by order.
    */
   std::list<Id> path(Id to) const;
+
+private:
+  std::unordered_map<Id, Vertex> vertexes;
+  std::unordered_set<Id> unvisitedIds;
 };
 
 #endif /* GRAPH_H_ */

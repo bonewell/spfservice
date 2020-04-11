@@ -1,66 +1,86 @@
 #include "graph.h"
 
 #include <algorithm>
+#include <iterator>
 
 void Vertex::update(Vertex const& a) {
-  auto d = a.distance + a.neighbors.at(id);
-  if (distance > d) {
-    distance = d;
-    previous = a.id;
+  if (info.visited) return;
+  auto d = a.info.distance + a.neighbors.at(id);
+  if (d < info.distance) {
+    info.distance = d;
+    info.previous = a.id;
   }
 }
 
 bool Vertex::infinite() const {
-  return distance == std::numeric_limits<Distance>::max();
+  return info.distance == std::numeric_limits<Distance>::infinity();
+}
+
+bool Vertex::isSource() const {
+  return info.visited && !info.previous;
 }
 
 void Graph::update(Vertex const& a) {
-  for (auto [id, _] : a.neighbors) {
-    if (isUnvisited(id)) {
-      vertexes[id].update(a);
-    }
-  }
+  std::for_each(begin(a.neighbors), end(a.neighbors),
+      [this, &a](auto const& p) { vertexes[p.first].update(a); });
 }
 
-bool Graph::isUnvisited(Id id) const {
-  return unvisitedIds.find(id) != unvisitedIds.end();
-}
-
-void Graph::mark(const Vertex &a) {
+void Graph::mark(Vertex& a) {
+  a.info.visited = true;
   unvisitedIds.erase(a.id);
 }
 
 bool Graph::isFinished() const {
   // TODO: O(n) -> O(1)
   return std::all_of(begin(unvisitedIds), end(unvisitedIds), [this] (auto id) {
-    return vertexes[id].infinite();
+    return vertexes.at(id).infinite();
   });
 }
 
-Vertex const& Graph::next() const {
+Vertex& Graph::next() {
   // TODO: O(n) -> O(1)
   return vertexes[*std::min_element(begin(unvisitedIds), end(unvisitedIds),
       [this] (auto id1, auto id2) {
-    return vertexes[id1].distance < vertexes[id2].distance;
+    return vertexes.at(id1).info.distance < vertexes.at(id2).info.distance;
   })];
 }
 
-Distance Graph::calculate(Id from, Id to) {
-  vertexes[from].distance = 0;
+Distance Graph::calculate(Id to) {
   do {
-    auto const& current = next();
+    auto& current = next();
     update(current);
     mark(current);
   } while (!isFinished());
-  return vertexes[to].distance;
+  return vertexes[to].info.distance;
+}
+
+void Graph::source(Id id) {
+  std::transform(begin(vertexes), end(vertexes),
+      std::inserter(unvisitedIds, unvisitedIds.end()),
+      [] (auto const& p) -> Id { return p.second.id; });
+  std::for_each(begin(vertexes), end(vertexes),
+      [] (auto& p) { p.second.info = {}; });
+  vertexes[id].info.distance = 0;
 }
 
 std::list<Id> Graph::path(Id to) const {
   std::list<Id> p{to};
-  auto prev = vertexes[to].previous;
-  while (prev != -1) {
-    p.push_front(prev);
-    prev = vertexes[prev].previous;
+  auto prev = vertexes.at(to).info.previous;
+  while (prev) {
+    p.push_front(*prev);
+    prev = vertexes.at(*prev).info.previous;
   }
   return p;
+}
+
+void Graph::insert(Id id, Neighbors neighbors) {
+  vertexes.emplace(id, Vertex{id, std::move(neighbors)});
+}
+
+std::list<Id> Graph::path(Id from, Id to) {
+  if (!vertexes.at(from).isSource()) {
+    source(from);
+    calculate(to);
+  }
+  return path(to);
 }
