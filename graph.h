@@ -24,16 +24,16 @@ struct Vertex {
   SpfInfo info;
 
   /**
-   * Updates distance to this vertex through a vertex.
+   * Sets new distance to this vertex through a vertex.
    * @param a - vertex which is used to calculate new distance.
    */
-  void update(Vertex const& a);
+  void setDistance(Vertex const& a);
 
   /**
    * Checks whether distance to this vertex is infinite.
    * @return true if the distance is infinite.
    */
-  bool infinite() const;
+  bool isInfinity() const;
 
   /**
    * Checks whether the vertex is source of the path.
@@ -64,22 +64,21 @@ protected:
   Vertex& operator[](Id id) { return vertexes[id]; }
 
   /**
-   * Sets source vertex.
-   * @param id - source vertex.
+   * Initializes graph to calculate.
    */
-  void source(Id id);
+  void init();
 
   /**
    * Updates distance to neighbors of the current vertex through it.
    * @param a - current vertex.
    */
-  void update(Vertex const& a);
+  void updateNeighbors(Vertex const& a);
 
   /**
-   * Marks vertex like visited.
+   * Marks vertex as visited.
    * @param a - the vertex.
    */
-  void mark(Vertex& a);
+  void markAsVisited(Vertex& a);
 
   /**
    * Checks whether calculation finished.
@@ -94,17 +93,17 @@ protected:
   Vertex& next();
 
   /**
-   * Calculate distance from source vertex to target vertex.
-   * @param to - target vertex.
-   * @return distance.
+   * Calculate distance from source vertex to every one.
+   * @param from - the source vertex.
    */
-  Distance calculate(Id to);
+  void calculate(Vertex& from);
 
   /**
    * Gets path to the target vertex.
+   * @param to - the target vertex.
    * @return list of the vertex by order.
    */
-  std::list<Id> path(Id to) const;
+  std::list<Id> path(Vertex const& to) const;
 
 private:
   std::unordered_map<Id, Vertex> vertexes;

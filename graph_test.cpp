@@ -9,9 +9,9 @@ using ::testing::ContainerEq;
 class TestGraph : public Graph {
 public:
   using Graph::operator[];
-  using Graph::source;
-  using Graph::update;
-  using Graph::mark;
+  using Graph::init;
+  using Graph::updateNeighbors;
+  using Graph::markAsVisited;
   using Graph::isFinished;
   using Graph::next;
   using Graph::calculate;
@@ -22,7 +22,7 @@ TEST(SPF, ShorterPathFound) {
   Vertex a{0, {{1, 2}}, {6}};
   Vertex b{1, {}, {10}};
 
-  b.update(a);
+  b.setDistance(a);
 
   EXPECT_THAT(b.info.distance, Eq(8));
 }
@@ -31,7 +31,7 @@ TEST(SPF, NoShorterPath) {
   Vertex a{0, {{1, 2}}, {6}};
   Vertex b{1, {}, {7}};
 
-  b.update(a);
+  b.setDistance(a);
 
   EXPECT_THAT(b.info.distance, Eq(7));
 }
@@ -40,7 +40,7 @@ TEST(SPF, VertexIsVisited) {
   Vertex a{0, {{1, 2}}, {6}};
   Vertex b{1, {}, {10, true}};
 
-  b.update(a);
+  b.setDistance(a);
 
   EXPECT_THAT(b.info.distance, Eq(10));
 }
@@ -50,10 +50,10 @@ TEST(SPF, UpdateNeighbors) {
   g.insert(0, {{1, 3}, {2, 5}});
   g.insert(1);
   g.insert(2);
-  g.source(0);
+  g.init();
   g[0].info.distance = 6;
 
-  g.update(g[0]);
+  g.updateNeighbors(g[0]);
 
   EXPECT_THAT(g[1].info.distance, Eq(9));
   EXPECT_THAT(g[2].info.distance, Eq(11));
@@ -63,11 +63,11 @@ TEST(SPF, SkipVisitedNeighbor) {
   TestGraph g;
   g.insert(0, {{1, 1}});
   g.insert(1);
-  g.source(0);
+  g.init();
   g[1].info.distance = 5;
   g[1].info.visited = true;
 
-  g.update(g[0]);
+  g.updateNeighbors(g[0]);
 
   EXPECT_THAT(g[1].info.distance, Eq(5));
 }
@@ -77,7 +77,7 @@ TEST(SPF, MarkAsVisited) {
   g.insert(0);
   g.insert(1);
 
-  g.mark(g[0]);
+  g.markAsVisited(g[0]);
 
   EXPECT_THAT(g[0].info.visited, Eq(true));
 //  EXPECT_THAT(g.unvisitedIds.find(a.id), Eq(g.unvisitedIds.end()));
@@ -95,8 +95,8 @@ TEST(SPF, TheEndWithNoEdge) {
   TestGraph g;
   g.insert(0);
   g.insert(1);
-  g.source(0);
-  g.mark(g[0]);
+  g.init();
+  g.markAsVisited(g[0]);
 
   EXPECT_THAT(g.isFinished(), Eq(true));
 }
@@ -105,8 +105,8 @@ TEST(SPF, NoFinished) {
   TestGraph g;
   g.insert(0);
   g.insert(1);
-  g.source(0);
-  g.mark(g[0]);
+  g.init();
+  g.markAsVisited(g[0]);
   g[1].info.distance = 4;
 
   EXPECT_THAT(g.isFinished(), Eq(false));
@@ -117,8 +117,8 @@ TEST(SPF, NextUnvisited) {
   g.insert(0);
   g.insert(1);
   g.insert(2);
-  g.source(0);
-  g.mark(g[0]);
+  g.init();
+  g.markAsVisited(g[0]);
   g[1].info.distance = 5;
   g[2].info.distance = 3;
 
@@ -133,9 +133,10 @@ TEST(SPF, Calculate) {
   g.insert(3, {{1, 15}, {2, 11}, {4, 6}});
   g.insert(4, {{3, 6}, {5, 9}});
   g.insert(5, {{0, 14}, {2, 2}, {4, 9}});
-  g.source(0);
 
-  EXPECT_THAT(g.calculate(4), Eq(20));
+  g.calculate(g[0]);
+
+  EXPECT_THAT(g[4].info.distance, Eq(20));
 }
 
 TEST(SPF, GetPath) {
@@ -147,7 +148,7 @@ TEST(SPF, GetPath) {
   g.insert(4); g[4].info = {0, true, 5};
   g.insert(5); g[5].info = {0, true, 2};
 
-  EXPECT_THAT(g.path(4), ContainerEq(std::list<Id>{0, 2, 5, 4}));
+  EXPECT_THAT(g.path(g[4]), ContainerEq(std::list<Id>{0, 2, 5, 4}));
 }
 
 TEST(SPF, CalculateAndGetPath) {
