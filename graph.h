@@ -4,8 +4,8 @@
 #include <limits>
 #include <list>
 #include <optional>
+#include <set>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 using Id = long long unsigned int;
@@ -67,6 +67,12 @@ protected:
   void init();
 
   /**
+   * Sets the vertex like source.
+   * @param v - the source vertex.
+   */
+  void setSource(Vertex& v);
+
+  /**
    * Updates distance to neighbors of the current vertex through it.
    * @param a - current vertex.
    */
@@ -103,12 +109,21 @@ protected:
    */
   std::list<Id> path(Vertex const& to) const;
 
-  std::unordered_set<Id>& unvisited() { return unvisitedIds; }
+  /**
+   * Gets vertex by id
+   * @param id - ID of the vertex
+   * @return vertex
+   */
   Vertex& operator[](Id id) { return vertexes[id]; }
 
+  bool hasUnvisited(Id id)
+  { return unvisited.find(&vertexes[id]) != unvisited.end(); }
+
 private:
-  std::unordered_map<Id, Vertex> vertexes;
-  std::unordered_set<Id> unvisitedIds;
+  using VCPtr = Vertex const*const;
+  struct LessDistance { bool operator()(VCPtr lhs, VCPtr rhs) const; };
+  std::vector<Vertex> vertexes;
+  std::set<VCPtr, LessDistance> unvisited{LessDistance{}};
 };
 
 #endif /* GRAPH_H_ */

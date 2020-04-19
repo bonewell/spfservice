@@ -3,6 +3,11 @@
 #include <algorithm>
 #include <iterator>
 
+bool Graph::LessDistance::operator()(VCPtr lhs, VCPtr rhs) const {
+  return (lhs->info.distance < rhs->info.distance)
+      || (lhs->info.distance == rhs->info.distance && lhs->id < rhs->id);
+}
+
 void Vertex::setDistance(Vertex const& a) {
   if (info.visited) return;
   auto d = a.info.distance + a.neighbors.at(id);
@@ -22,32 +27,33 @@ bool Vertex::isSource() const {
 
 void Graph::updateNeighbors(Vertex const& a) {
   std::for_each(begin(a.neighbors), end(a.neighbors),
-      [this, &a](auto const& p) { vertexes[p.first].setDistance(a); });
+      [this, &a](auto const& p) {
+    auto& v = vertexes[p.first];
+    if (!v.info.visited) {
+      unvisited.erase(&v);
+      v.setDistance(a);
+      unvisited.insert(&v);
+    }
+  });
 }
 
 void Graph::markAsVisited(Vertex& a) {
   a.info.visited = true;
-  unvisitedIds.erase(a.id);
+  unvisited.erase(&a);
 }
 
 bool Graph::isFinished() const {
-  // TODO: O(n) -> O(1)
-  return std::all_of(begin(unvisitedIds), end(unvisitedIds), [this] (auto id) {
-    return vertexes.at(id).isInfinity();
-  });
+  return unvisited.empty() || (*cbegin(unvisited))->isInfinity();
 }
 
 Vertex& Graph::next() {
-  // TODO: O(n) -> O(1)
-  return vertexes[*std::min_element(begin(unvisitedIds), end(unvisitedIds),
-      [this] (auto id1, auto id2) {
-    return vertexes.at(id1).info.distance < vertexes.at(id2).info.distance;
-  })];
+  auto* v = *cbegin(unvisited);
+  return vertexes[v->id];
 }
 
 void Graph::calculate(Vertex& from) {
   init();
-  from.info.distance = 0;
+  setSource(from);
   do {
     auto& current = next();
     updateNeighbors(current);
@@ -57,10 +63,16 @@ void Graph::calculate(Vertex& from) {
 
 void Graph::init() {
   std::transform(begin(vertexes), end(vertexes),
-      std::inserter(unvisitedIds, unvisitedIds.end()),
-      [] (auto const& p) -> Id { return p.second.id; });
+      std::inserter(unvisited, unvisited.end()),
+      [] (auto const& p) -> Vertex const*const { return &p; });
   std::for_each(begin(vertexes), end(vertexes),
-      [] (auto& p) { p.second.info = {}; });
+      [] (auto& p) { p.info = {}; });
+}
+
+void Graph::setSource(Vertex& v) {
+  unvisited.erase(&v);
+  v.info.distance = 0;
+  unvisited.insert(&v);
 }
 
 std::list<Id> Graph::path(Vertex const& to) const {
@@ -74,7 +86,7 @@ std::list<Id> Graph::path(Vertex const& to) const {
 }
 
 void Graph::insert(Id id, Neighbors neighbors) {
-  vertexes.emplace(id, Vertex{id, std::move(neighbors)});
+  vertexes.push_back({id, std::move(neighbors)});
 }
 
 std::list<Id> Graph::path(Id from, Id to) {

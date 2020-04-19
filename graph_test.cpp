@@ -9,8 +9,9 @@ using ::testing::ContainerEq;
 class TestGraph : public Graph {
 public:
   using Graph::operator[];
-  using Graph::unvisited;
+  using Graph::hasUnvisited;
   using Graph::init;
+  using Graph::setSource;
   using Graph::updateNeighbors;
   using Graph::markAsVisited;
   using Graph::isFinished;
@@ -52,12 +53,14 @@ TEST(SPF, UpdateNeighbors) {
   g.insert(1);
   g.insert(2);
   g.init();
-  g[0].info.distance = 6;
+  g.setSource(g[0]);
 
   g.updateNeighbors(g[0]);
 
-  EXPECT_THAT(g[1].info.distance, Eq(9));
-  EXPECT_THAT(g[2].info.distance, Eq(11));
+  EXPECT_THAT(g[1].info.distance, Eq(3));
+  EXPECT_THAT(g.hasUnvisited(1), Eq(true));
+  EXPECT_THAT(g[2].info.distance, Eq(5));
+  EXPECT_THAT(g.hasUnvisited(2), Eq(true));
 }
 
 TEST(SPF, SkipVisitedNeighbor) {
@@ -81,7 +84,7 @@ TEST(SPF, MarkAsVisited) {
   g.markAsVisited(g[0]);
 
   EXPECT_THAT(g[0].info.visited, Eq(true));
-  EXPECT_THAT(g.unvisited().find(g[0].id), Eq(g.unvisited().end()));
+  EXPECT_THAT(g.hasUnvisited(0), Eq(false));
 }
 
 TEST(SPF, TheEndNoUnvisited) {
@@ -113,6 +116,17 @@ TEST(SPF, NoFinished) {
   EXPECT_THAT(g.isFinished(), Eq(false));
 }
 
+TEST(SPF, FirstUnvisited) {
+  TestGraph g;
+  g.insert(0);
+  g.insert(1);
+  g.insert(2);
+  g.init();
+  g.setSource(g[0]);
+
+  EXPECT_THAT(g.next().id, Eq(0));
+}
+
 TEST(SPF, NextUnvisited) {
   TestGraph g;
   g.insert(0);
@@ -120,10 +134,20 @@ TEST(SPF, NextUnvisited) {
   g.insert(2);
   g.init();
   g.markAsVisited(g[0]);
-  g[1].info.distance = 5;
-  g[2].info.distance = 3;
 
-  EXPECT_THAT(g.next().id, Eq(2));
+  EXPECT_THAT(g.next().id, Eq(1));
+}
+
+TEST(SPF, SetSource) {
+  TestGraph g;
+  g.insert(0);
+  g.insert(1);
+  g.init();
+
+  g.setSource(g[0]);
+
+  EXPECT_THAT(g[0].info.distance, Eq(0));
+  EXPECT_THAT(g.hasUnvisited(0), Eq(true));
 }
 
 TEST(SPF, Calculate) {
