@@ -61,8 +61,6 @@ public:
   std::list<Id> path(Id from, Id to);
 
 protected:
-  Vertex& operator[](Id id) { return vertexes[id]; }
-
   /**
    * Initializes graph to calculate.
    */
@@ -104,6 +102,9 @@ protected:
    * @return list of the vertex by order.
    */
   std::list<Id> path(Vertex const& to) const;
+
+  std::unordered_set<Id>& unvisited() { return unvisitedIds; }
+  Vertex& operator[](Id id) { return vertexes[id]; }
 
 private:
   std::unordered_map<Id, Vertex> vertexes;

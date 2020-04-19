@@ -23,3 +23,13 @@ target_link_libraries(${UNIT_TEST}
   CONAN_PKG::gtest
 )
 add_test(NAME ${UNIT_TEST} COMMAND ${UNIT_TEST})
+
+set(BENCHMARK ${PROJECT_NAME}_benchmark)
+add_executable(${BENCHMARK}
+  "graph.cpp"
+  "graph_benchmark.cpp"
+)
+target_compile_features(${BENCHMARK} PRIVATE cxx_std_17)
+target_link_libraries(${BENCHMARK}
+  CONAN_PKG::benchmark
+)

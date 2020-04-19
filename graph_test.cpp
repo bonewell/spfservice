@@ -9,6 +9,7 @@ using ::testing::ContainerEq;
 class TestGraph : public Graph {
 public:
   using Graph::operator[];
+  using Graph::unvisited;
   using Graph::init;
   using Graph::updateNeighbors;
   using Graph::markAsVisited;
@@ -80,7 +81,7 @@ TEST(SPF, MarkAsVisited) {
   g.markAsVisited(g[0]);
 
   EXPECT_THAT(g[0].info.visited, Eq(true));
-//  EXPECT_THAT(g.unvisitedIds.find(a.id), Eq(g.unvisitedIds.end()));
+  EXPECT_THAT(g.unvisited().find(g[0].id), Eq(g.unvisited().end()));
 }
 
 TEST(SPF, TheEndNoUnvisited) {
