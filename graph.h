@@ -120,7 +120,7 @@ protected:
   { return unvisited.find(&vertexes[id]) != unvisited.end(); }
 
 private:
-  using VCPtr = Vertex const*const;
+  using VCPtr = Vertex const*;
   struct LessDistance { bool operator()(VCPtr lhs, VCPtr rhs) const; };
   std::vector<Vertex> vertexes;
   std::set<VCPtr, LessDistance> unvisited{LessDistance{}};
