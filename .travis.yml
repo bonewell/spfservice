@@ -5,13 +5,15 @@ matrix:
           osx_image: xcode11.3
           compiler: clang
           install:
-              - pip install conan
+              - pip install conan cpp-coveralls
               - conan user
           script:
               - conan install . --build missing
-              - cmake .
+              - cmake -DCMAKE_BUILD_TYPE=Debug .
               - cmake --build .
               - ctest
+          after_success:
+              - coveralls --exclude CMakeFiles --gcov-options '\-lp'
         - os: linux
           dist: bionic
           compiler: gcc
@@ -24,15 +26,17 @@ matrix:
           env:
               - MATRIX_EVAL="CC=gcc-9 && CXX=g++-9"
           install:
-              - pip install --user conan
+              - pip install --user conan cpp-coveralls
               - conan user
           script:
               - conan install . -s compiler.libcxx=libstdc++11 --build missing
-              - cmake .
+              - cmake -DCMAKE_BUILD_TYPE=Debug .
               - cmake --build .
               - ctest
           before_install:
               - eval "${MATRIX_EVAL}"
+          after_success:
+              - coveralls --gcov gcov-9 --exclude CMakeFiles --gcov-options '\-lp'
         - os: windows
           env: 
               - PATH=/c/Python38:/c/Python38/Scripts:$PATH
