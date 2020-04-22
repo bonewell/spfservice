@@ -26,3 +26,14 @@ $ ./bin/spfservice_benchmark
 ```Shell
 $ ./bin/spfservice
 ```
+
+## API
+GET /graphs - list of graphs (id, name)
+request: empty
+response: [ { "id": <Number>, "name": <String> }, ... ]
+POST /graphs/<name> - add graphs with name
+request: [ { "vid": <Number>, "neighbors": [{"vid": <Number>, "distance": <Number>}, ...] }, ...]
+response: { "id": <id> }
+GET /graphs/delete/<id> - delete graph
+GET /path/<id>/<from>/<to> - calculate path in graph
+response: [<Number>, ...]
