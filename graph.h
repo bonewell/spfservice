@@ -44,13 +44,16 @@ struct Vertex {
 
 class Graph {
 public:
+  /**
+   * Adds new vertex in graph.
+   * @return id of the vertex.
+   */
+  Id addVertex();
 
   /**
-   * Inserts vertex into graph.
-   * @param id - ID of the vertex.
-   * @param neighbors - distances to neighbors.
+   * Adds a new edge or update distance of the already existed one.
    */
-  void insert(Id id, Neighbors neighbors = {});
+  void setEdge(Id from, Id to, Distance distance);
 
   /**
    * Gets path from a source to a target vertex.
@@ -114,16 +117,17 @@ protected:
    * @param id - ID of the vertex
    * @return vertex
    */
-  Vertex& operator[](Id id) { return vertexes[id]; }
+  Vertex& operator[](Id id) { return vertexes_[id]; }
 
   bool hasUnvisited(Id id)
-  { return unvisited.find(&vertexes[id]) != unvisited.end(); }
+  { return unvisited_.find(&vertexes_[id]) != unvisited_.end(); }
 
 private:
   using VCPtr = Vertex const*;
   struct LessDistance { bool operator()(VCPtr lhs, VCPtr rhs) const; };
-  std::vector<Vertex> vertexes;
-  std::set<VCPtr, LessDistance> unvisited{LessDistance{}};
+  void checkId(Id id);
+  std::vector<Vertex> vertexes_;
+  std::set<VCPtr, LessDistance> unvisited_{LessDistance{}};
 };
 
 #endif /* GRAPH_H_ */

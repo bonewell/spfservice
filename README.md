@@ -27,13 +27,41 @@ $ ./bin/spfservice_benchmark
 $ ./bin/spfservice
 ```
 
-## API
-GET /graphs - list of graphs (id, name)
-request: empty
-response: [ { "id": <Number>, "name": <String> }, ... ]
-POST /graphs/<name> - add graphs with name
-request: [ { "vid": <Number>, "neighbors": [{"vid": <Number>, "distance": <Number>}, ...] }, ...]
-response: { "id": <id> }
-GET /graphs/delete/<id> - delete graph
-GET /path/<id>/<from>/<to> - calculate path in graph
-response: [<Number>, ...]
+## Json API
+### Add vertex
+#### Request
+```Json
+{"action": "AddVertex"}
+```
+
+#### Response
+```Json
+{"id": "<Number>"}
+```
+
+### Add edge or update weight
+#### Request
+```Json
+{"action": "SetEdge", "from": <Number>, "to": <Number>, "weight": <Number>}
+```
+
+#### Response
+```Json
+{}
+```
+
+### Get path
+#### Request
+```Json
+{"action": "GetPath", "from": <Number>, "to": <Number>}
+```
+
+#### Response
+```Json
+{"ids": ["<Number>", ...]}
+```
+
+### Error response
+```Json
+{"error": "<String>"}
+```
