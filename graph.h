@@ -10,7 +10,6 @@
 
 using Id = long long unsigned int;
 using Distance = double;
-using Neighbors = std::unordered_map<Id, Distance>;
 
 struct SpfInfo {
   Distance distance{std::numeric_limits<Distance>::infinity()};
@@ -20,7 +19,7 @@ struct SpfInfo {
 
 struct Vertex {
   Id id;
-  Neighbors neighbors;
+  std::unordered_map<Id, Distance> neighbors;
   SpfInfo info;
 
   /**
@@ -52,8 +51,18 @@ public:
 
   /**
    * Adds a new edge or update distance of the already existed one.
+   * @param from - begin the edge.
+   * @param to - end of the edge.
+   * @param distance - weight of the edge.
    */
   void setEdge(Id from, Id to, Distance distance);
+
+  /**
+   * Remove edge.
+   * @param from - begin the edge.
+   * @param to - end of the edge.
+   */
+  void removeEdge(Id from, Id to);
 
   /**
    * Gets path from a source to a target vertex.
@@ -126,6 +135,7 @@ private:
   using VCPtr = Vertex const*;
   struct LessDistance { bool operator()(VCPtr lhs, VCPtr rhs) const; };
   void checkId(Id id);
+  void checkDistance(Distance distance);
   std::vector<Vertex> vertexes_;
   std::set<VCPtr, LessDistance> unvisited_{LessDistance{}};
 };

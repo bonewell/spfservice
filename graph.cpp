@@ -84,6 +84,7 @@ Id Graph::addVertex() {
 void Graph::setEdge(Id from, Id to, Distance distance) {
   checkId(from);
   checkId(to);
+  checkDistance(distance);
   vertexes_[from].neighbors[to] = distance;
 }
 
@@ -111,5 +112,17 @@ std::list<Id> Graph::path(Id from, Id to) {
 void Graph::checkId(Id id) {
   if (id >= vertexes_.size()) {
     throw std::invalid_argument{"Wrong vertex ID"};
+  }
+}
+
+void Graph::removeEdge(Id from, Id to) {
+  checkId(from);
+  checkId(to);
+  vertexes_[from].neighbors.erase(to);
+}
+
+void Graph::checkDistance(Distance distance) {
+  if (distance < 0) {
+    throw std::invalid_argument{"Negative weight"};
   }
 }

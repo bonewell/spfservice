@@ -91,6 +91,29 @@ TEST(SPF, SetEdgeWithWrongTo) {
   EXPECT_THROW(g.setEdge(0, 1, 1.1), std::invalid_argument);
 }
 
+TEST(SPF, RemoveEdge) {
+  TestGraph g;
+  g.addVertex(); g.addVertex();
+  g.setEdge(0, 1, 2.3);
+
+  g.removeEdge(0, 1);
+
+  EXPECT_THAT(g[0].neighbors.empty(), Eq(true));
+}
+
+TEST(SPF, RemoveEdgeWithWrongFrom) {
+  Graph g;
+
+  EXPECT_THROW(g.removeEdge(0, 1), std::invalid_argument);
+}
+
+TEST(SPF, RemoveEdgeWithWrongTo) {
+  Graph g;
+  g.addVertex();
+
+  EXPECT_THROW(g.removeEdge(0, 1), std::invalid_argument);
+}
+
 TEST(SPF, UpdateNeighbors) {
   TestGraph g;
   g.addVertex(); g.addVertex(); g.addVertex();

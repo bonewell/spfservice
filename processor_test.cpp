@@ -50,6 +50,42 @@ TEST(Processor, AddEdgeWithoutFrom) {
       Eq(R"({"error":"Not enough data"})"));
 }
 
+TEST(Processor, AddEdgeWithNegativeWeight) {
+  Processor p;
+  p.serve(R"({"action":"AddVertex"})");
+  p.serve(R"({"action":"AddVertex"})");
+
+  EXPECT_THAT(p.serve(R"({"action":"AddEdge","from":0,"to":1,"weight":-1.3})"),
+      Eq(R"({"error":"Negative weight"})"));
+}
+
+TEST(Processor, RemoveEdge) {
+  Processor p;
+  p.serve(R"({"action":"AddVertex"})");
+  p.serve(R"({"action":"AddVertex"})");
+  p.serve(R"({"action":"AddEdge","from":0,"to":1,"weight":3.4})");
+
+  EXPECT_THAT(p.serve(R"({"action":"RemoveEdge","from":0,"to":1})"), Eq(R"({})"));
+}
+
+TEST(Processor, RemoveEdgeWithWrongID) {
+  Processor p;
+  p.serve(R"({"action":"AddVertex"})");
+
+  EXPECT_THAT(p.serve(R"({"action":"RemoveEdge","from":0,"to":1})"),
+      Eq(R"({"error":"Wrong vertex ID"})"));
+}
+
+TEST(Processor, RemoveEdgeWithoutTo) {
+  EXPECT_THAT(Processor{}.serve(R"({"action":"RemoveEdge","from":0})"),
+      Eq(R"({"error":"Not enough data"})"));
+}
+
+TEST(Processor, RemoveEdgeWithoutFrom) {
+  EXPECT_THAT(Processor{}.serve(R"({"action":"RemoveEdge","to":1})"),
+      Eq(R"({"error":"Not enough data"})"));
+}
+
 TEST(Processor, GetPath) {
   Processor p;
   p.serve(R"({"action":"AddVertex"})");

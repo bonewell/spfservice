@@ -50,6 +50,17 @@ $ ./bin/spfservice
 {}
 ```
 
+### Remove edge
+#### Request
+```Json
+{"action": "RemoveEdge", "from": <Number>, "to": <Number>}
+```
+
+#### Response
+```Json
+{}
+```
+
 ### Get path
 #### Request
 ```Json
