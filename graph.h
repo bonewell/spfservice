@@ -68,9 +68,10 @@ public:
    * Gets path from a source to a target vertex.
    * @param from - the source vertex.
    * @param to - the target vertex.
+   * @param force - calculate distances also if true.
    * @return list of the vertex by order.
    */
-  std::list<Id> path(Id from, Id to);
+  std::list<Id> path(Id from, Id to, bool force = false);
 
 protected:
   /**

@@ -14,9 +14,17 @@ static void BM_SPF_CalculatePath(benchmark::State& state) {
   g.setEdge(5, 0, 14); g.setEdge(5, 2, 2); g.setEdge(5, 4, 9);
 
   for (auto _ : state) {
-    g.path(state.range(0), state.range(1));
+    g.path(state.range(0), state.range(1), true);
   }
 }
+BENCHMARK(BM_SPF_CalculatePath)
+  ->Args({0, 5})
+  ->Args({1, 4})
+  ->Args({2, 3})
+  ->Args({3, 2})
+  ->Args({4, 1})
+  ->Args({5, 0})
+  ->Complexity();
 
 static void BM_SPF_GetPath(benchmark::State& state) {
   Graph g;
@@ -35,22 +43,11 @@ static void BM_SPF_GetPath(benchmark::State& state) {
   }
 }
 
-BENCHMARK(BM_SPF_CalculatePath)
-    ->Iterations(1)
-    ->Args({0, 5})
-    ->Args({1, 4})
-    ->Args({2, 3})
-    ->Args({3, 2})
-    ->Args({4, 1})
-    ->Args({5, 0})
-    ->Complexity();
-
 BENCHMARK(BM_SPF_GetPath)
-    ->Iterations(1)
-    ->Args({0, 5})
-    ->Args({1, 4})
-    ->Args({2, 3})
-    ->Args({3, 2})
-    ->Args({4, 1})
-    ->Args({5, 0})
-    ->Complexity();
+  ->Args({0, 5})
+  ->Args({1, 4})
+  ->Args({2, 3})
+  ->Args({3, 2})
+  ->Args({4, 1})
+  ->Args({5, 0})
+  ->Complexity();

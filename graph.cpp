@@ -62,11 +62,12 @@ void Graph::calculate(Vertex& from) {
 }
 
 void Graph::init() {
+  std::for_each(begin(vertexes_), end(vertexes_),
+      [] (auto& p) { p.info = {}; });
+  unvisited_.clear();
   std::transform(begin(vertexes_), end(vertexes_),
       std::inserter(unvisited_, unvisited_.end()),
       [] (auto const& p) -> Vertex const*const { return &p; });
-  std::for_each(begin(vertexes_), end(vertexes_),
-      [] (auto& p) { p.info = {}; });
 }
 
 void Graph::setSource(Vertex& v) {
@@ -98,11 +99,11 @@ std::list<Id> Graph::path(Vertex const& to) const {
   return p;
 }
 
-std::list<Id> Graph::path(Id from, Id to) {
+std::list<Id> Graph::path(Id from, Id to, bool force) {
   checkId(from);
   checkId(to);
   auto& source = vertexes_.at(from);
-  if (!source.isSource()) {
+  if (force || !source.isSource()) {
     calculate(source);
   }
   auto const& target = vertexes_.at(to);
