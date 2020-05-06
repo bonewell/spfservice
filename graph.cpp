@@ -61,13 +61,12 @@ void Graph::calculate(Vertex& from) {
 }
 
 void Graph::init() {
-//  vertexes_.shrink_to_fit();
   std::for_each(begin(vertexes_), end(vertexes_),
-      [] (auto& p) { p.info = {}; });
+      [] (auto& p) { p.second.info = {}; });
   unvisited_.clear();
   std::transform(begin(vertexes_), end(vertexes_),
       std::inserter(unvisited_, unvisited_.end()),
-      [] (auto& p) -> Vertex* { return &p; });
+      [] (auto& p) -> Vertex* { return &p.second; });
 }
 
 void Graph::setSource(Vertex& v) {
@@ -77,7 +76,7 @@ void Graph::setSource(Vertex& v) {
 }
 
 Id Graph::addVertex() {
-  vertexes_.push_back({id_});
+  vertexes_.emplace(id_, Vertex{id_});
   return id_++;
 }
 
@@ -105,14 +104,12 @@ std::list<Id> Graph::path(Id from, Id to, bool force) {
   return path(target);
 }
 
-std::vector<Vertex>::iterator Graph::at(Id id) {
-  // vertexes_ is sorted by unique value of id
-  auto it = std::lower_bound(begin(vertexes_), end(vertexes_), Vertex{id},
-      [](auto const& a, auto const& b) { return a.id < b.id; });
-  if (it == end(vertexes_) || it->id > id) {
+Vertex* Graph::at(Id id) {
+  auto it = vertexes_.find(id);
+  if (it == end(vertexes_)) {
     throw std::invalid_argument{"Wrong vertex ID"};
   }
-  return it;
+  return &it->second;
 }
 
 void Graph::removeEdge(Id from, Id to) {

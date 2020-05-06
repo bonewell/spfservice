@@ -5,7 +5,6 @@
 #include <list>
 #include <set>
 #include <unordered_map>
-#include <vector>
 
 using Id = long long unsigned int;
 using Distance = double;
@@ -135,10 +134,10 @@ protected:
 
 private:
   struct LessDistance { bool operator()(Vertex* lhs, Vertex* rhs) const; };
-  std::vector<Vertex>::iterator at(Id id);
+  Vertex* at(Id id);
   void checkDistance(Distance distance);
   Id id_{0};
-  std::vector<Vertex> vertexes_;
+  std::unordered_map<Id, Vertex> vertexes_;
   std::set<Vertex*, LessDistance> unvisited_{LessDistance{}};
 };
 
