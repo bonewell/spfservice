@@ -21,8 +21,9 @@ public:
 };
 
 TEST(SPF, ShorterPathFound) {
-  Vertex a{0, {{1, 2}}, {6}};
+  Vertex a{0, {}, {6}};
   Vertex b{1, {}, {10}};
+  a.neighbors = {{&b, 2}};
 
   b.setDistance(a);
 
@@ -30,8 +31,9 @@ TEST(SPF, ShorterPathFound) {
 }
 
 TEST(SPF, NoShorterPath) {
-  Vertex a{0, {{1, 2}}, {6}};
+  Vertex a{0, {}, {6}};
   Vertex b{1, {}, {7}};
+  a.neighbors = {{&b, 2}};
 
   b.setDistance(a);
 
@@ -39,8 +41,9 @@ TEST(SPF, NoShorterPath) {
 }
 
 TEST(SPF, VertexIsVisited) {
-  Vertex a{0, {{1, 2}}, {6}};
+  Vertex a{0, {}, {6}};
   Vertex b{1, {}, {10, true}};
+  a.neighbors = {{&b, 2}};
 
   b.setDistance(a);
 
@@ -66,7 +69,7 @@ TEST(SPF, SetNewEdge) {
 
   g.setEdge(0, 1, 2.3);
 
-  EXPECT_THAT(g[0].neighbors[1], Eq(2.3));
+  EXPECT_THAT(g[0].neighbors[&g[1]], Eq(2.3));
 }
 
 TEST(SPF, UpdateEdge) {
@@ -75,7 +78,7 @@ TEST(SPF, UpdateEdge) {
   g.setEdge(0, 1, 2.3);
 
   g.setEdge(0, 1, 3.4);
-  EXPECT_THAT(g[0].neighbors[1], Eq(3.4));
+  EXPECT_THAT(g[0].neighbors[&g[1]], Eq(3.4));
 }
 
 TEST(SPF, SetEdgeWithWrongFrom) {
@@ -228,11 +231,11 @@ TEST(SPF, GetPath) {
   g.addVertex(); g.addVertex(); g.addVertex(); g.addVertex();
   g.addVertex(); g.addVertex();
   g[0].info = {0, true};
-  g[1].info = {0, true, 0};
-  g[2].info = {0, true, 0};
-  g[3].info = {0, true, 2};
-  g[4].info = {0, true, 5};
-  g[5].info = {0, true, 2};
+  g[1].info = {0, true, &g[0]};
+  g[2].info = {0, true, &g[0]};
+  g[3].info = {0, true, &g[2]};
+  g[4].info = {0, true, &g[5]};
+  g[5].info = {0, true, &g[2]};
 
   EXPECT_THAT(g.path(g[4]), ContainerEq(std::list<Id>{0, 2, 5, 4}));
 }

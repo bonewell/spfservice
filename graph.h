@@ -3,7 +3,6 @@
 
 #include <limits>
 #include <list>
-#include <optional>
 #include <set>
 #include <unordered_map>
 #include <vector>
@@ -11,15 +10,17 @@
 using Id = long long unsigned int;
 using Distance = double;
 
+struct Vertex;
+
 struct SpfInfo {
   Distance distance{std::numeric_limits<Distance>::infinity()};
   bool visited{false};
-  std::optional<Id> previous;
+  Vertex* previous{nullptr};
 };
 
 struct Vertex {
   Id id;
-  std::unordered_map<Id, Distance> neighbors;
+  std::unordered_map<Vertex*, Distance> neighbors;
   SpfInfo info;
 
   /**
@@ -107,7 +108,7 @@ protected:
    * Gets the next unvisited vertex with the minimum distance.
    * @return the vertex.
    */
-  Vertex& next();
+  Vertex& next() const;
 
   /**
    * Calculate distance from source vertex to every one.
@@ -127,18 +128,18 @@ protected:
    * @param id - ID of the vertex
    * @return vertex
    */
-  Vertex& operator[](Id id) { return vertexes_[id]; }
+  Vertex& operator[](Id id) { return *at(id); }
 
   bool hasUnvisited(Id id)
-  { return unvisited_.find(&vertexes_[id]) != unvisited_.end(); }
+  { return unvisited_.find(&*at(id)) != unvisited_.end(); }
 
 private:
-  using VCPtr = Vertex const*;
-  struct LessDistance { bool operator()(VCPtr lhs, VCPtr rhs) const; };
-  void checkId(Id id);
+  struct LessDistance { bool operator()(Vertex* lhs, Vertex* rhs) const; };
+  std::vector<Vertex>::iterator at(Id id);
   void checkDistance(Distance distance);
+  Id id_{0};
   std::vector<Vertex> vertexes_;
-  std::set<VCPtr, LessDistance> unvisited_{LessDistance{}};
+  std::set<Vertex*, LessDistance> unvisited_{LessDistance{}};
 };
 
 #endif /* GRAPH_H_ */

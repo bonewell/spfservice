@@ -21,7 +21,7 @@ public:
    * @return pointer to specific command.
    */
   static std::unique_ptr<Action> create(ptree::ptree input);
-  Action(ptree::ptree input): input_{std::move(input)} {}
+  Action(ptree::ptree input): input_{move(input)} {}
   virtual ~Action() = default;
 
   /**
@@ -115,15 +115,15 @@ std::unique_ptr<Action> Action::create(ptree::ptree input) {
   auto action = input.get<std::string>("action", "unknown");
 
   if (action == "AddVertex") {
-    return std::make_unique<AddVertex>(std::move(input));
+    return std::make_unique<AddVertex>(move(input));
   } else if (action == "AddEdge") {
-    return std::make_unique<AddEdge>(std::move(input));
+    return std::make_unique<AddEdge>(move(input));
   } else if (action == "RemoveEdge") {
-    return std::make_unique<RemoveEdge>(std::move(input));
+    return std::make_unique<RemoveEdge>(move(input));
   } else if (action == "GetPath") {
-    return std::make_unique<GetPath>(std::move(input));
+    return std::make_unique<GetPath>(move(input));
   }
-  return std::make_unique<Unknown>(std::move(input));
+  return std::make_unique<Unknown>(move(input));
 }
 
 ptree::ptree Action::execute(Graph& graph) try {
@@ -145,7 +145,7 @@ std::string Processor::serve(std::string request) {
   json::read_json(iss, input);
 
   std::ostringstream oss;
-  auto output = Action::create(std::move(input))->execute(graph_);
+  auto output = Action::create(move(input))->execute(graph_);
   json::write_json_helper(oss, output, 0, false);
   return oss.str();
 }
