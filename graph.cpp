@@ -3,17 +3,17 @@
 #include <algorithm>
 #include <iterator>
 
-bool Graph::LessDistance::operator()(VCPtr lhs, VCPtr rhs) const {
+bool Graph::LessDistance::operator()(Vertex const* lhs, Vertex const* rhs) const {
   return (lhs->info.distance < rhs->info.distance)
       || (lhs->info.distance == rhs->info.distance && lhs->id < rhs->id);
 }
 
 void Vertex::setDistance(Vertex const& a) {
   if (info.visited) return;
-  auto d = a.info.distance + a.neighbors.at(id);
+  auto d = a.info.distance + a.neighbors.at(this);
   if (d < info.distance) {
     info.distance = d;
-    info.previous = a.id;
+    info.previous = &a;
   }
 }
 
@@ -28,27 +28,26 @@ bool Vertex::isSource() const {
 void Graph::updateNeighbors(Vertex const& a) {
   std::for_each(begin(a.neighbors), end(a.neighbors),
       [this, &a](auto const& p) {
-    auto& v = vertexes[p.first];
-    if (!v.info.visited) {
-      unvisited.erase(&v);
-      v.setDistance(a);
-      unvisited.insert(&v);
+    auto v = p.first;
+    if (!v->info.visited) {
+      unvisited_.erase(v);
+      v->setDistance(a);
+      unvisited_.insert(v);
     }
   });
 }
 
 void Graph::markAsVisited(Vertex& a) {
   a.info.visited = true;
-  unvisited.erase(&a);
+  unvisited_.erase(&a);
 }
 
 bool Graph::isFinished() const {
-  return unvisited.empty() || (*cbegin(unvisited))->isInfinity();
+  return unvisited_.empty() || (*begin(unvisited_))->isInfinity();
 }
 
 Vertex& Graph::next() {
-  auto* v = *cbegin(unvisited);
-  return vertexes[v->id];
+  return **begin(unvisited_);
 }
 
 void Graph::calculate(Vertex& from) {
@@ -62,38 +61,71 @@ void Graph::calculate(Vertex& from) {
 }
 
 void Graph::init() {
-  std::transform(begin(vertexes), end(vertexes),
-      std::inserter(unvisited, unvisited.end()),
-      [] (auto const& p) -> Vertex const*const { return &p; });
-  std::for_each(begin(vertexes), end(vertexes),
-      [] (auto& p) { p.info = {}; });
+  std::for_each(begin(vertexes_), end(vertexes_),
+      [] (auto& p) { p.second.info = {}; });
+  unvisited_.clear();
+  std::transform(begin(vertexes_), end(vertexes_),
+      std::inserter(unvisited_, unvisited_.end()),
+      [] (auto& p) -> Vertex* { return &p.second; });
 }
 
 void Graph::setSource(Vertex& v) {
-  unvisited.erase(&v);
+  unvisited_.erase(&v);
   v.info.distance = 0;
-  unvisited.insert(&v);
+  unvisited_.insert(&v);
+}
+
+Id Graph::addVertex() {
+  vertexes_.emplace(id_, Vertex{id_});
+  return id_++;
+}
+
+void Graph::setEdge(Id from, Id to, Distance distance) {
+  checkDistance(distance);
+  at(from)->neighbors[at(to)] = distance;
 }
 
 std::list<Id> Graph::path(Vertex const& to) const {
   std::list<Id> p{to.id};
   auto prev = to.info.previous;
   while (prev) {
-    p.push_front(*prev);
-    prev = vertexes.at(*prev).info.previous;
+    p.push_front(prev->id);
+    prev = prev->info.previous;
   }
   return p;
 }
 
-void Graph::insert(Id id, Neighbors neighbors) {
-  vertexes.push_back({id, std::move(neighbors)});
-}
-
-std::list<Id> Graph::path(Id from, Id to) {
-  auto& source = vertexes.at(from);
-  if (!source.isSource()) {
+std::list<Id> Graph::path(Id from, Id to, bool force) {
+  auto& source = *at(from);
+  auto const& target = *at(to);
+  if (force || !source.isSource()) {
     calculate(source);
   }
-  auto const& target = vertexes.at(to);
   return path(target);
+}
+
+Vertex* Graph::at(Id id) {
+  auto it = vertexes_.find(id);
+  if (it == end(vertexes_)) {
+    throw std::invalid_argument{"Wrong vertex ID"};
+  }
+  return &it->second;
+}
+
+void Graph::removeEdge(Id from, Id to) {
+  at(from)->neighbors.erase(at(to));
+}
+
+void Graph::removeVertex(Id id) {
+  auto const v = at(id);
+  std::for_each(begin(vertexes_), end(vertexes_), [v](auto& p) {
+    p.second.neighbors.erase(v);
+  });
+  vertexes_.erase(v->id);
+}
+
+void Graph::checkDistance(Distance distance) const {
+  if (distance < 0) {
+    throw std::invalid_argument{"Negative weight"};
+  }
 }

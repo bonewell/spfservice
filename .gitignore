@@ -1,6 +1,7 @@
 # IDE
 .project
 .cproject
+.idea
 
 # Prerequisites
 *.d

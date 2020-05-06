@@ -3,24 +3,23 @@
 
 #include <limits>
 #include <list>
-#include <optional>
 #include <set>
 #include <unordered_map>
-#include <vector>
 
 using Id = long long unsigned int;
 using Distance = double;
-using Neighbors = std::unordered_map<Id, Distance>;
+
+struct Vertex;
 
 struct SpfInfo {
   Distance distance{std::numeric_limits<Distance>::infinity()};
   bool visited{false};
-  std::optional<Id> previous;
+  Vertex const* previous{nullptr};
 };
 
 struct Vertex {
   Id id;
-  Neighbors neighbors;
+  std::unordered_map<Vertex*, Distance> neighbors;
   SpfInfo info;
 
   /**
@@ -44,21 +43,41 @@ struct Vertex {
 
 class Graph {
 public:
+  /**
+   * Adds new vertex in graph.
+   * @return id of the vertex.
+   */
+  Id addVertex();
 
   /**
-   * Inserts vertex into graph.
-   * @param id - ID of the vertex.
-   * @param neighbors - distances to neighbors.
+   * Removes vertex and its edges.
+   * @param id - the vertex.
    */
-  void insert(Id id, Neighbors neighbors = {});
+  void removeVertex(Id id);
+
+  /**
+   * Adds a new edge or update distance of the already existed one.
+   * @param from - begin the edge.
+   * @param to - end of the edge.
+   * @param distance - weight of the edge.
+   */
+  void setEdge(Id from, Id to, Distance distance);
+
+  /**
+   * Remove edge.
+   * @param from - begin the edge.
+   * @param to - end of the edge.
+   */
+  void removeEdge(Id from, Id to);
 
   /**
    * Gets path from a source to a target vertex.
    * @param from - the source vertex.
    * @param to - the target vertex.
+   * @param force - calculate distances also if true.
    * @return list of the vertex by order.
    */
-  std::list<Id> path(Id from, Id to);
+  std::list<Id> path(Id from, Id to, bool force = false);
 
 protected:
   /**
@@ -114,16 +133,18 @@ protected:
    * @param id - ID of the vertex
    * @return vertex
    */
-  Vertex& operator[](Id id) { return vertexes[id]; }
+  Vertex& operator[](Id id) { return *at(id); }
 
   bool hasUnvisited(Id id)
-  { return unvisited.find(&vertexes[id]) != unvisited.end(); }
+  { return unvisited_.find(at(id)) != unvisited_.end(); }
 
 private:
-  using VCPtr = Vertex const*;
-  struct LessDistance { bool operator()(VCPtr lhs, VCPtr rhs) const; };
-  std::vector<Vertex> vertexes;
-  std::set<VCPtr, LessDistance> unvisited{LessDistance{}};
+  struct LessDistance { bool operator()(Vertex const* lhs, Vertex const* rhs) const; };
+  Vertex* at(Id id);
+  void checkDistance(Distance distance) const;
+  Id id_{0};
+  std::unordered_map<Id, Vertex> vertexes_;
+  std::set<Vertex*, LessDistance> unvisited_{LessDistance{}};
 };
 
 #endif /* GRAPH_H_ */
