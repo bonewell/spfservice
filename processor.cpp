@@ -52,6 +52,19 @@ public:
   }
 };
 
+class RemoveVertex: public Action {
+public:
+  using Action::Action;
+  ptree::ptree run(Graph& graph) {
+    auto id = input_.get_optional<Id>("id");
+    if (!id) {
+      throw std::invalid_argument{"Not enough data"};
+    }
+    graph.removeVertex(*id);
+    return {};
+  }
+};
+
 class AddEdge: public Action {
 public:
   using Action::Action;
@@ -116,6 +129,8 @@ std::unique_ptr<Action> Action::create(ptree::ptree input) {
 
   if (action == "AddVertex") {
     return std::make_unique<AddVertex>(move(input));
+  } else if (action == "RemoveVertex") {
+    return std::make_unique<RemoveVertex>(move(input));
   } else if (action == "AddEdge") {
     return std::make_unique<AddEdge>(move(input));
   } else if (action == "RemoveEdge") {

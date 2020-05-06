@@ -18,6 +18,23 @@ TEST(Processor, AddVertex) {
   EXPECT_THAT(Processor{}.serve(R"({"action":"AddVertex"})"), Eq(R"({"id":"0"})"));
 }
 
+TEST(Processor, RemoveVertex) {
+  Processor p;
+  p.serve(R"({"action":"AddVertex"})");
+
+  EXPECT_THAT(p.serve(R"({"action":"RemoveVertex","id":0})"), Eq(R"({})"));
+}
+
+TEST(Processor, RemoveVertexWithWrongId) {
+  EXPECT_THAT(Processor{}.serve(R"({"action":"RemoveVertex","id":2})"),
+      Eq(R"({"error":"Wrong vertex ID"})"));
+}
+
+TEST(Processor, RemoveVertexWithoutId) {
+  EXPECT_THAT(Processor{}.serve(R"({"action":"RemoveVertex"})"),
+      Eq(R"({"error":"Not enough data"})"));
+}
+
 TEST(Processor, AddEdge) {
   Processor p;
   p.serve(R"({"action":"AddVertex"})");

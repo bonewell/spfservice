@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <iterator>
 
-bool Graph::LessDistance::operator()(Vertex* lhs, Vertex* rhs) const {
+bool Graph::LessDistance::operator()(Vertex const* lhs, Vertex const* rhs) const {
   return (lhs->info.distance < rhs->info.distance)
       || (lhs->info.distance == rhs->info.distance && lhs->id < rhs->id);
 }
@@ -13,7 +13,7 @@ void Vertex::setDistance(Vertex const& a) {
   auto d = a.info.distance + a.neighbors.at(this);
   if (d < info.distance) {
     info.distance = d;
-    info.previous = const_cast<Vertex*>(&a);
+    info.previous = &a;
   }
 }
 
@@ -43,11 +43,11 @@ void Graph::markAsVisited(Vertex& a) {
 }
 
 bool Graph::isFinished() const {
-  return unvisited_.empty() || (*cbegin(unvisited_))->isInfinity();
+  return unvisited_.empty() || (*begin(unvisited_))->isInfinity();
 }
 
-Vertex& Graph::next() const {
-  return const_cast<Vertex&>(**begin(unvisited_));
+Vertex& Graph::next() {
+  return **begin(unvisited_);
 }
 
 void Graph::calculate(Vertex& from) {
@@ -82,7 +82,7 @@ Id Graph::addVertex() {
 
 void Graph::setEdge(Id from, Id to, Distance distance) {
   checkDistance(distance);
-  at(from)->neighbors[&*at(to)] = distance;
+  at(from)->neighbors[at(to)] = distance;
 }
 
 std::list<Id> Graph::path(Vertex const& to) const {
@@ -113,10 +113,18 @@ Vertex* Graph::at(Id id) {
 }
 
 void Graph::removeEdge(Id from, Id to) {
-  at(from)->neighbors.erase(&*at(to));
+  at(from)->neighbors.erase(at(to));
 }
 
-void Graph::checkDistance(Distance distance) {
+void Graph::removeVertex(Id id) {
+  auto const v = at(id);
+  std::for_each(begin(vertexes_), end(vertexes_), [v](auto& p) {
+    p.second.neighbors.erase(v);
+  });
+  vertexes_.erase(v->id);
+}
+
+void Graph::checkDistance(Distance distance) const {
   if (distance < 0) {
     throw std::invalid_argument{"Negative weight"};
   }

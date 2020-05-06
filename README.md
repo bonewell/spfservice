@@ -39,6 +39,18 @@ $ ./bin/spfservice
 {"id": "<Number>"}
 ```
 
+### Remove vertex
+#### Request
+```Json
+{"action": "RemoveVertex", "id": <Number>}
+```
+
+#### Response
+```Json
+{}
+```
+_Note: all edges of the vertex are removing._
+
 ### Add edge or update weight
 #### Request
 ```Json

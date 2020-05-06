@@ -14,7 +14,7 @@ struct Vertex;
 struct SpfInfo {
   Distance distance{std::numeric_limits<Distance>::infinity()};
   bool visited{false};
-  Vertex* previous{nullptr};
+  Vertex const* previous{nullptr};
 };
 
 struct Vertex {
@@ -48,6 +48,12 @@ public:
    * @return id of the vertex.
    */
   Id addVertex();
+
+  /**
+   * Removes vertex and its edges.
+   * @param id - the vertex.
+   */
+  void removeVertex(Id id);
 
   /**
    * Adds a new edge or update distance of the already existed one.
@@ -107,7 +113,7 @@ protected:
    * Gets the next unvisited vertex with the minimum distance.
    * @return the vertex.
    */
-  Vertex& next() const;
+  Vertex& next();
 
   /**
    * Calculate distance from source vertex to every one.
@@ -130,12 +136,12 @@ protected:
   Vertex& operator[](Id id) { return *at(id); }
 
   bool hasUnvisited(Id id)
-  { return unvisited_.find(&*at(id)) != unvisited_.end(); }
+  { return unvisited_.find(at(id)) != unvisited_.end(); }
 
 private:
-  struct LessDistance { bool operator()(Vertex* lhs, Vertex* rhs) const; };
+  struct LessDistance { bool operator()(Vertex const* lhs, Vertex const* rhs) const; };
   Vertex* at(Id id);
-  void checkDistance(Distance distance);
+  void checkDistance(Distance distance) const;
   Id id_{0};
   std::unordered_map<Id, Vertex> vertexes_;
   std::set<Vertex*, LessDistance> unvisited_{LessDistance{}};

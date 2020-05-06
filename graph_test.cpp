@@ -63,6 +63,29 @@ TEST(SPF, AddSecondVertex) {
   EXPECT_THAT(g.addVertex(), Eq(1));
 }
 
+TEST(SPF, RemoveVertex) {
+  TestGraph g;
+  g.addVertex();
+
+  g.removeVertex(0);
+  EXPECT_THROW(g[0], std::invalid_argument);
+}
+
+TEST(SPF, RemoveVertexWithEdges) {
+  TestGraph g;
+  g.addVertex(); g.addVertex();
+  g[1].neighbors = {{&g[0], 20}};
+
+  g.removeVertex(0);
+  EXPECT_THAT(g[1].neighbors.size(), Eq(0));
+}
+
+TEST(SPF, RemoveVertexWithWrongId) {
+  Graph g;
+
+  EXPECT_THROW(g.removeVertex(0), std::invalid_argument);
+}
+
 TEST(SPF, SetNewEdge) {
   TestGraph g;
   g.addVertex(); g.addVertex();
