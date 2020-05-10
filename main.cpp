@@ -48,14 +48,11 @@ void wait(net::io_context& ioc,
     beast::error_code ec;
     ws::stream<beast::tcp_stream> wsock{ioc};
     acceptor.async_accept(beast::get_lowest_layer(wsock).socket(), yield[ec]);
-    if (ec) {
-      fail(ec, "accept");
-    } else {
-      wsock.async_accept(yield[ec]);
-      if (ec) return fail(ec, "accept");
-      net::spawn(acceptor.get_executor(),
-          std::bind(&process, std::move(wsock), std::placeholders::_1));
-    }
+    if (ec) return fail(ec, "accept tcp");
+    wsock.async_accept(yield[ec]);
+    if (ec) return fail(ec, "accept ws");
+    net::spawn(acceptor.get_executor(),
+        std::bind(&process, std::move(wsock), std::placeholders::_1));
   }
 }
 
