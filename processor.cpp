@@ -147,14 +147,10 @@ ptree::ptree Action::execute(Graph& graph) try {
   ptree::ptree error;
   error.put("error", e.what());
   return error;
-} catch (...) {
-  ptree::ptree error;
-  error.put("error", "Unknown error");
-  return error;
 }
 }  // namespace
 
-std::string Processor::serve(std::string request) {
+std::string Processor::serve(std::string request) try {
   std::istringstream iss{request};
   ptree::ptree input;
   json::read_json(iss, input);
@@ -163,4 +159,8 @@ std::string Processor::serve(std::string request) {
   auto output = Action::create(move(input))->execute(graph_);
   json::write_json_helper(oss, output, 0, false);
   return oss.str();
+} catch (ptree::json_parser_error const& e) {
+  return R"({"error":"Invalid JSON"})";
+} catch (...) {
+  return R"({"error":"Internal error"})";
 }

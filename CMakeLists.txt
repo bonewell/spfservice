@@ -11,7 +11,7 @@ add_executable(${PROJECT_NAME}
   "processor.cpp"
 )
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PRIVATE
   CONAN_PKG::boost
 )
 
@@ -25,7 +25,7 @@ add_executable(${UNIT_TEST}
   "processor_test.cpp"
 )
 target_compile_features(${UNIT_TEST} PRIVATE cxx_std_17)
-target_link_libraries(${UNIT_TEST}
+target_link_libraries(${UNIT_TEST} PRIVATE
   CONAN_PKG::gtest
   CONAN_PKG::boost
 )
@@ -37,6 +37,6 @@ add_executable(${BENCHMARK}
   "graph_benchmark.cpp"
 )
 target_compile_features(${BENCHMARK} PRIVATE cxx_std_17)
-target_link_libraries(${BENCHMARK}
+target_link_libraries(${BENCHMARK} PRIVATE
   CONAN_PKG::benchmark
 )
