@@ -1,3 +1,8 @@
+# IDE
+.project
+.cproject
+.idea
+
 # Prerequisites
 *.d
 
@@ -30,3 +35,5 @@
 *.exe
 *.out
 *.app
+/bin/
+/build/
