@@ -54,7 +54,7 @@ _Note: all edges of the vertex are removing._
 ### Add edge or update weight
 #### Request
 ```Json
-{"action": "SetEdge", "from": <Number>, "to": <Number>, "weight": <Number>}
+{"action": "AddEdge", "from": <Number>, "to": <Number>, "weight": <Number>}
 ```
 
 #### Response
