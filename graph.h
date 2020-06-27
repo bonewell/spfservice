@@ -145,6 +145,7 @@ private:
   Id id_{0};
   std::unordered_map<Id, Vertex> vertexes_;
   std::set<Vertex*, LessDistance> unvisited_{LessDistance{}};
+  bool dirty_{true};
 };
 
 #endif /* GRAPH_H_ */
