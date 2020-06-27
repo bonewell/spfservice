@@ -58,6 +58,7 @@ void Graph::calculate(Vertex& from) {
     updateNeighbors(current);
     markAsVisited(current);
   } while (!isFinished());
+  dirty_ = false;
 }
 
 void Graph::init() {
@@ -83,6 +84,7 @@ Id Graph::addVertex() {
 void Graph::setEdge(Id from, Id to, Distance distance) {
   checkDistance(distance);
   at(from)->neighbors[at(to)] = distance;
+  dirty_ = true;
 }
 
 std::list<Id> Graph::path(Vertex const& to) const {
@@ -98,7 +100,7 @@ std::list<Id> Graph::path(Vertex const& to) const {
 std::list<Id> Graph::path(Id from, Id to, bool force) {
   auto& source = *at(from);
   auto const& target = *at(to);
-  if (force || !source.isSource()) {
+  if (force || dirty_ || !source.isSource()) {
     calculate(source);
   }
   return path(target);
@@ -114,6 +116,7 @@ Vertex* Graph::at(Id id) {
 
 void Graph::removeEdge(Id from, Id to) {
   at(from)->neighbors.erase(at(to));
+  dirty_ = true;
 }
 
 void Graph::removeVertex(Id id) {
@@ -122,6 +125,7 @@ void Graph::removeVertex(Id id) {
     p.second.neighbors.erase(v);
   });
   vertexes_.erase(v->id);
+  dirty_ = true;
 }
 
 void Graph::checkDistance(Distance distance) const {
